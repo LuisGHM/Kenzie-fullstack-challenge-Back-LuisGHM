@@ -1,4 +1,4 @@
-import { Exclude } from "class-transformer";
+import { Exclude, Transform } from "class-transformer";
 import { randomUUID } from "crypto";
 
 export class Client {
@@ -10,10 +10,12 @@ export class Client {
     password: string;
 
     telephone: string;
+
+    @Transform(({ value }) => value.toISOString().split('T')[0])
     readonly create_at: Date;
 
     constructor() {
         this.id = randomUUID();
-        this.create_at = new Date(); 
+        this.create_at = new Date();
     }
 }
