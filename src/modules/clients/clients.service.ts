@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
 import { PrismaService } from 'src/database/prisma.service';
@@ -22,19 +22,28 @@ export class ClientsService {
     return plainToInstance(Client, client)
   }
 
-  findAll() {
-    return `This action returns all clients`;
+  async findAll() {
+    const clients = await this.prisma.client.findMany();
+    return plainToInstance(Client, clients)
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} client`;
+  async update(id: string, updateClientDto: UpdateClientDto) {
+    const client = await this.prisma.client.findUnique({where: {id}});
+    if (!client){
+      throw new NotFoundException("Client not found");
+    }
+    const updatedClient = await this.prisma.client.update({
+      where: {id},
+      data: {...updateClientDto},
+    });
+    return plainToInstance(Client, updateClientDto)
   }
 
-  update(id: number, updateClientDto: UpdateClientDto) {
-    return `This action updates a #${id} client`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} client`;
+  async remove(id: string) {
+    const client = await this.prisma.client.findUnique({where: {id}});
+    if (!client){
+      throw new NotFoundException("Client not found");
+    }
+    await this.prisma.client.delete({where: {id}});
   }
 }
