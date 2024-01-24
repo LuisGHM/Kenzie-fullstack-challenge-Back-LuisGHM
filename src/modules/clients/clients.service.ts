@@ -9,21 +9,22 @@ import { plainToInstance } from 'class-transformer';
 @Injectable()
 export class ClientsService {
   constructor(private prisma: PrismaService){}
-  private clients: Client[] = [];
 
   async create(createClientDto: CreateClientDto) {
-    const findUser = await this.prisma.client.findFirst({where: {email: createClientDto.email, telephone: createClientDto.telephone}});
-    if(findUser){
+    const findClient = await this.prisma.client.findFirst({where: {email: createClientDto.email, telephone: createClientDto.telephone}});
+    console.log(findClient);
+    
+    if(findClient){
       throw new ConflictException("User alredy exists");
     }
     const client = new Client();
     Object.assign(client, {...createClientDto,});
-    await this.prisma.client.create({data: {...client}})
+    await this.prisma.client.create({data: {...client, contacts: undefined}})
     return plainToInstance(Client, client)
   }
 
   async findAll() {
-    const clients = await this.prisma.client.findMany();
+    const clients = await this.prisma.client.findMany({include: {contacts: true}});
     return plainToInstance(Client, clients)
   }
 
