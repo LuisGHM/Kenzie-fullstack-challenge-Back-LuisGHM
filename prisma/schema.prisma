@@ -11,12 +11,25 @@ datasource db {
 }
 
 model Client {
-  id String @id 
-  name String
-  email String
-  password String
-  telephone String
-  create_at DateTime
+  id         String @id
+  name       String
+  email      String
+  password   String
+  telephone  String
+  created_at DateTime
+  contacts Contact[] @relation("client_contacts")
 
   @@map("clients")
+}
+
+model Contact {
+  id         String @id
+  name       String
+  email      String
+  telephone  String
+  created_at DateTime
+  clientId   String   
+  client     Client @relation("client_contacts", fields: [clientId], references: [id])
+
+  @@map("contacts")
 }

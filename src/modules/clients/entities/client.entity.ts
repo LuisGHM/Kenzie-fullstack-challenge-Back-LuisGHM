@@ -12,10 +12,10 @@ export class Client {
     telephone: string;
 
     @Transform(({ value }) => value.toISOString().split('T')[0])
-    readonly create_at: Date;
+    readonly created_at: Date;
 
     constructor() {
         this.id = randomUUID();
-        this.create_at = new Date();
+        this.created_at = new Date();
     }
 }
