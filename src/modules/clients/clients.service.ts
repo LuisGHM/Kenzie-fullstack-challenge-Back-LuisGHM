@@ -12,10 +12,11 @@ export class ClientsService {
 
   async create(createClientDto: CreateClientDto) {
     const findClient = await this.prisma.client.findFirst({where: {email: createClientDto.email, telephone: createClientDto.telephone}});
-    console.log(findClient);
-    
-    if(findClient){
-      throw new ConflictException("User alredy exists");
+
+    if(findClient.email == createClientDto.email){
+      throw new ConflictException("A client with this email alredy exists");
+    } if (findClient.telephone == createClientDto.telephone) {
+      throw new ConflictException("A client with this telephone alredy exists");
     }
     const client = new Client();
     Object.assign(client, {...createClientDto,});
@@ -28,10 +29,24 @@ export class ClientsService {
     return plainToInstance(Client, clients)
   }
 
+  async findOne(id: string) {
+    const client = await this.prisma.client.findFirst({where: {id: id}, include: {contacts: true}});
+    if (!client){
+      throw new NotFoundException("Client not found");
+    }
+    return plainToInstance(Client, client)
+  }
+
   async update(id: string, updateClientDto: UpdateClientDto) {
     const client = await this.prisma.client.findUnique({where: {id}});
     if (!client){
       throw new NotFoundException("Client not found");
+    }
+    const findClient = await this.prisma.client.findFirst({where: {email: updateClientDto.email, telephone: updateClientDto.telephone}});
+    if(findClient.email == updateClientDto.email){
+      throw new ConflictException("A client with this email alredy exists");
+    } if (findClient.telephone == updateClientDto.telephone) {
+      throw new ConflictException("A client with this telephone alredy exists");
     }
     const updatedClient = await this.prisma.client.update({
       where: {id},

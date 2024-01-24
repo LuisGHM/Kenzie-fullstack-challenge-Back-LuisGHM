@@ -8,12 +8,13 @@ import { plainToInstance } from 'class-transformer';
 @Injectable()
 export class ContactsService {
   constructor(private prisma: PrismaService){}
-  private contacts: Contact[] = [];
 
    async create(createContactDto: CreateContactDto) {
     const FindContact = await this.prisma.contact.findFirst({where: {email: createContactDto.email, telephone: createContactDto.telephone}})
-    if (FindContact) {
-      throw new ConflictException("Contact alredy exists");
+    if(FindContact.email == createContactDto.email){
+      throw new ConflictException("A contact with this email alredy exists");
+    } if (FindContact.telephone == createContactDto.telephone) {
+      throw new ConflictException("A contact with this telephone alredy exists");
     }
     const contact = new Contact();
     Object.assign(contact, {...createContactDto});
@@ -25,6 +26,12 @@ export class ContactsService {
     const contact = await this.prisma.contact.findUnique({where: {id}});
     if (!contact){
       throw new NotFoundException("Contact not found");
+    }
+    const FindContact = await this.prisma.contact.findFirst({where: {email: updateContactDto.email, telephone: updateContactDto.telephone}})
+    if(FindContact.email == updateContactDto.email){
+      throw new ConflictException("A contact with this email alredy exists");
+    } if (FindContact.telephone == updateContactDto.telephone) {
+      throw new ConflictException("A contact with this telephone alredy exists");
     }
     const updatedContact = await this.prisma.contact.update({
       where: {id},
