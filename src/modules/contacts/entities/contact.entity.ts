@@ -10,10 +10,11 @@ export class Contact {
     @Transform(({ value }) => value.toISOString().split('T')[0])
     readonly created_at: Date;
 
-    clientId: string;
+    readonly clientId: string;
 
-    constructor() {
+    constructor(client: { id: string }) {
         this.id = randomUUID();
         this.created_at = new Date();
+        this.clientId = client && client.id ? client.id : null;
     }
 }

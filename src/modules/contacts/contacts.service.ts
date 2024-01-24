@@ -9,14 +9,15 @@ import { plainToInstance } from 'class-transformer';
 export class ContactsService {
   constructor(private prisma: PrismaService){}
 
-   async create(createContactDto: CreateContactDto) {
-    const FindContact = await this.prisma.contact.findFirst({where: {email: createContactDto.email, telephone: createContactDto.telephone}})
-    if(FindContact.email == createContactDto.email){
-      throw new ConflictException("A contact with this email alredy exists");
-    } if (FindContact.telephone == createContactDto.telephone) {
+   async create(createContactDto: CreateContactDto, id: string) {
+    const findContact = await this.prisma.contact.findFirst({where: {email: createContactDto.email, telephone: createContactDto.telephone}})
+    const findClient = await this.prisma.client.findFirst({where: {id: id}})
+    if (findContact && findContact.email === createContactDto.email) {
+      throw new ConflictException("A contact with this email already exists");
+    } if (findContact && findContact.telephone == createContactDto.telephone) {
       throw new ConflictException("A contact with this telephone alredy exists");
     }
-    const contact = new Contact();
+    const contact = new Contact(findClient);
     Object.assign(contact, {...createContactDto});
     await this.prisma.contact.create({data: {...contact}})
     return plainToInstance(Contact, contact)
