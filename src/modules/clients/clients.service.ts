@@ -30,11 +30,19 @@ export class ClientsService {
   }
 
   async findOne(id: string) {
-    const client = await this.prisma.client.findFirst({where: {id: id}, include: {contacts: true}});
+    const client = await this.prisma.client.findUnique({where: {id: id}, include: {contacts: true}});
     if (!client){
       throw new NotFoundException("Client not found");
     }
     return plainToInstance(Client, client)
+  }
+
+  async findByEmail(email: string) {
+    const client = await this.prisma.client.findFirst({where: {email: email}});
+    if (!client){
+      throw new NotFoundException("Client not found");
+    }
+    return client
   }
 
   async update(id: string, updateClientDto: UpdateClientDto) {
