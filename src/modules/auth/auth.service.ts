@@ -9,7 +9,7 @@ export class AuthService {
     constructor(private clietService: ClientsService, private jwtService: JwtService){}
 
     async login({email, password}: LoginDto){
-        const findUser = await this.clietService.findByEmail(email);
+        const findUser = await this.clietService.verifyEmail(email);
         if (!findUser) {
             throw new UnauthorizedException("Invalid email or password");
         }
@@ -17,10 +17,11 @@ export class AuthService {
         const passwordCompared = await compare(password, findUser.password);
         if (!passwordCompared) {
             throw new UnauthorizedException("Invalid email or password");
-        }
+        }      
 
         return {
-            token: this.jwtService.sign({email},{subject: findUser.id})
+            token: this.jwtService.sign({email},{subject: findUser.id}),
+            user: findUser
         }
     }
 }

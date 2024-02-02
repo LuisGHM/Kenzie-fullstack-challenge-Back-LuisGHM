@@ -11,17 +11,22 @@ export class ClientsService {
   constructor(private prisma: PrismaService){}
 
   async create(createClientDto: CreateClientDto) {
-    const findClient = await this.prisma.client.findFirst({where: {email: createClientDto.email, telephone: createClientDto.telephone}});
-
-    if(findClient.email == createClientDto.email){
-      throw new ConflictException("A client with this email alredy exists");
-    } if (findClient.telephone == createClientDto.telephone) {
-      throw new ConflictException("A client with this telephone alredy exists");
+    const findClientByEmail = await this.prisma.client.findFirst({ where: { email: createClientDto.email } });
+    const findClientByTelephone = await this.prisma.client.findFirst({ where: { telephone: createClientDto.telephone } });
+  
+    if (findClientByEmail && findClientByTelephone) {
+      throw new ConflictException("A client with this email and telephone already exists");
+    } else if (findClientByEmail) {
+      throw new ConflictException("A client with this email already exists");
+    } else if (findClientByTelephone) {
+      throw new ConflictException("A client with this telephone already exists");
     }
+  
     const client = new Client();
-    Object.assign(client, {...createClientDto,});
-    await this.prisma.client.create({data: {...client, contacts: undefined}})
-    return plainToInstance(Client, client)
+    Object.assign(client, { ...createClientDto });
+    await this.prisma.client.create({ data: { ...client, contacts: undefined } });
+  
+    return plainToInstance(Client, client);
   }
 
   async findAll() {
@@ -37,31 +42,50 @@ export class ClientsService {
     return plainToInstance(Client, client)
   }
 
-  async findByEmail(email: string) {
-    const client = await this.prisma.client.findFirst({where: {email: email}});
+  async verifyEmail(email: string) {
+    const client = await this.prisma.client.findFirst({where: {email: email}, include: {contacts: true}});
     if (!client){
       throw new NotFoundException("Client not found");
     }
     return client
   }
 
-  async update(id: string, updateClientDto: UpdateClientDto) {
-    const client = await this.prisma.client.findUnique({where: {id}});
+  async findByEmail(email: string) {
+    const client = await this.prisma.client.findFirst({where: {email: email}, include: {contacts: true}});
     if (!client){
       throw new NotFoundException("Client not found");
     }
-    const findClient = await this.prisma.client.findFirst({where: {email: updateClientDto.email, telephone: updateClientDto.telephone}});
-    if(findClient.email == updateClientDto.email){
-      throw new ConflictException("A client with this email alredy exists");
-    } if (findClient.telephone == updateClientDto.telephone) {
-      throw new ConflictException("A client with this telephone alredy exists");
-    }
-    const updatedClient = await this.prisma.client.update({
-      where: {id},
-      data: {...updateClientDto},
-    });
-    return plainToInstance(Client, updateClientDto)
+    return plainToInstance(Client, client)
   }
+
+  async update(id: string, updateClientDto: UpdateClientDto) {
+    const client = await this.prisma.client.findUnique({ where: { id } });
+    if (!client) {
+      throw new NotFoundException("Client not found");
+    }
+  
+    if (updateClientDto.email !== client.email) {
+      const findClientByEmail = await this.prisma.client.findFirst({ where: { email: updateClientDto.email } });
+      if (findClientByEmail) {
+        throw new ConflictException("A client with this email already exists");
+      }
+    }
+  
+    if (updateClientDto.telephone !== client.telephone) {
+      const findClientByTelephone = await this.prisma.client.findFirst({ where: { telephone: updateClientDto.telephone } });
+      if (findClientByTelephone) {
+        throw new ConflictException("A client with this telephone already exists");
+      }
+    }
+  
+    const updatedClient = await this.prisma.client.update({
+      where: { id },
+      data: { ...updateClientDto },
+    });
+  
+    return plainToInstance(Client, updatedClient);
+  }
+  
 
   async remove(id: string) {
     const client = await this.prisma.client.findUnique({where: {id}});

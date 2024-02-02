@@ -21,8 +21,14 @@ export class ClientsController {
 
   @Get(':id')
   @UseGuards(JWTGuard)
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: string) { 
     return this.clientsService.findOne(id);
+  }
+
+  @Get('email/:email')
+  @UseGuards(JWTGuard)
+  findByEmail(@Param('email') email: string) { 
+    return this.clientsService.findByEmail(email);
   }
 
   @Patch(':id')
