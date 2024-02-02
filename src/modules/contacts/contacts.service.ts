@@ -10,15 +10,15 @@ export class ContactsService {
   constructor(private prisma: PrismaService){}
 
   async create(createContactDto: CreateContactDto, id: string) {
-    const findContactEmail = await this.prisma.contact.findFirst({ where: { email: createContactDto.email } });
-    const findContactTelephone = await this.prisma.contact.findFirst({ where: { telephone: createContactDto.telephone } });
-    const findClient = await this.prisma.client.findFirst({ where: { id: id } });
-  
-    if (findContactEmail && findContactEmail.email === createContactDto.email) {
-      throw new ConflictException("A contact with this email already exists");
-    } 
-    if (findContactTelephone && findContactTelephone.telephone == createContactDto.telephone) {
-      throw new ConflictException("A contact with this telephone already exists");
+    const findClient = await this.prisma.client.findFirst({ where: { id: id }});
+    const findContactWithEmail  = await this.prisma.client.findFirst({ where: { id: id }, include: {contacts: {where: {email: createContactDto.email}}} });
+    const findContactWithTelephone = await this.prisma.client.findFirst({ where: { id: id }, include: {contacts: {where: {telephone: createContactDto.telephone}}} });
+
+    if (findContactWithEmail.contacts.length > 0 ) {
+      throw new ConflictException("A contact with this email already exists in you contact list");
+    }
+    if (findContactWithTelephone.contacts.length > 0 ) {
+      throw new ConflictException("A contact with this telephone already exists in you contact list");
     }
   
     const contact = new Contact(findClient);

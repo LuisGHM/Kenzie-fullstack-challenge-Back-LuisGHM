@@ -25,8 +25,8 @@ model Client {
 model Contact {
   id         String @id
   name       String
-  email      String @unique
-  telephone  String @unique
+  email      String
+  telephone  String
   created_at DateTime
   clientId   String   
   client     Client @relation("client_contacts", fields: [clientId], references: [id])
