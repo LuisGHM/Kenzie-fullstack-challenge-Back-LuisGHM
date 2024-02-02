@@ -13,10 +13,11 @@ async function bootstrap() {
       transformOptions: {groups: ["transform"]}
     }));
     const config = new DocumentBuilder()
-    .setTitle('Cats example')
-    .setDescription('The cats API description')
+    .setTitle('Desafio Fullstack API')
+    .setDescription('')
     .setVersion('1.0')
-    .addTag('cats')
+    .addBearerAuth()
+    .addTag('')
     .build();
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('api', app, document);
